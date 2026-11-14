@@ -81,6 +81,38 @@
 1. **Детекция:** процедура `sp_detect_latent_shortages` находит партии с ненулевым остатком, по которым не было продаж дольше нормативного порога (90, 120 или 180 дней), и помечает их флагом `SUSPECT`.
 2. **Ревизия:** заведующая проверяет полку и при отсутствии товара вызывает `sp_confirm_missing_batch`, переводя партию в статус `CONFIRMED_MISSING`.
 3. **Учёт:** при ночной сверке (`sp_verify_and_clean_declines`) система опирается на чистый остаток (`qty_net`), не штрафуя фармацевта за отказ по физически утерянной позиции.
+   ### Сквозной процесс: выявление и блокировка «потеряшек» (UML Sequence)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Manager as Заведующая
+    actor Pharm as Фармацевт (касса)
+    participant Cron as Ночной робот (Job)
+    participant DB as MySQL (apteka_bober)
+
+    Note over Cron, DB: Этап 1. Ночной аудит запасов (Слон 1)
+    Cron->>DB: CALL sp_detect_latent_shortages(CURDATE())
+    DB->>DB: Поиск партий без продаж > 90/120/180 дн.
+    DB-->>Cron: Статус партии обновлен на SUSPECT
+
+    Note over Manager, DB: Этап 2. Инвентаризация в зале
+    Manager->>DB: Просмотр дашборда аномалий
+    Manager->>Manager: Поиск упаковки на полке (товара нет)
+    Manager->>DB: CALL sp_confirm_missing_batch(batch_id, emp_id)
+    DB->>DB: Флаг CONFIRMED_MISSING
+
+    Note over Pharm, DB: Этап 3. Защита времени на кассе (Слон 4)
+    Pharm->>DB: Поиск препарата для покупателя
+    DB-->>Pharm: Алерт: «ВНИМАНИЕ: Товар утерян. Не искать!»
+    Pharm->>Pharm: Не тратит 10 мин на поиски, сразу предлагает аналог
+
+    Note over Cron, DB: Этап 4. Автозаказ (Слон 3)
+    Cron->>DB: CALL sp_daily_minmax_recalc(CURDATE())
+    DB->>DB: Вычитание CONFIRMED_MISSING из доступного остатка
+    DB-->>Cron: Формирование заказа поставщику
+```
+
 
 ### 4.2. ИИ-аудитор зала (Voice-of-Customer) и фильтрация шума
 Чтобы минимизировать человеческий фактор при фиксации дефектуры, в DWH спроектирован контур приёма событий аудио-/видеоаналитики (`ai_omni_audit_log` и `ai_demand_log`). Витрина `v_ai_executive_navigator` агрегирует инциденты и формирует для заведующей готовые управленческие инструкции:
