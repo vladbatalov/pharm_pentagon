@@ -120,63 +120,58 @@ flowchart TD
 3. **Учёт:** при ночной сверке (`sp_verify_and_clean_declines`) система опирается на чистый остаток (`qty_net`), не штрафуя фармацевта за отказ по физически утерянной позиции.
 ### Сквозной процесс: выявление и блокировка «потеряшек» (UML Sequence)
 
+```mermaid
 flowchart TD
-    %% Стили для ролей и акцентов
     classDef robot fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1
     classDef human fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100
     classDef db fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#4a148c
     classDef alert fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c
 
-    subgraph S1 ["🌙 Этап 1. Ночной аудит запасов (Слон 1)"]
-        direction LR
-        A1[🤖 Ночной робот] -->|sp_detect_latent_shortages| A2[(🗄️ MySQL: Поиск партий<br/>без продаж > 90/120/180 дн.)]
-        A2 -->|Результат| A3[🏷️ Статус: SUSPECT]
+    subgraph S1["Этап 1. Ночной аудит запасов (Слон 1)"]
+        A1["Ночной робот"] -->|sp_detect_latent_shortages| A2[("MySQL: Поиск партий без продаж > 90/120/180 дн.")]
+        A2 --> A3["Статус партии: SUSPECT"]
     end
 
-    subgraph S2 ["📋 Этап 2. Инвентаризация в зале"]
-        direction LR
-        B1[👩‍💼 Заведующая] -->|Смотрит дашборд| B2[🔍 Ищет упаковку на полке]
-        B2 -->|Товара нет| B3[🖱️ Нажимает «Подтвердить пропажу»<br/>sp_confirm_missing_batch]
-        B3 --> B4[(🗄️ Флаг: CONFIRMED_MISSING)]
+    subgraph S2["Этап 2. Инвентаризация в зале"]
+        B1["Заведующая"] -->|Смотрит дашборд| B2["Ищет упаковку на полке"]
+        B2 -->|Товара нет| B3["Подтверждает пропажу: sp_confirm_missing_batch"]
+        B3 --> B4[("Флаг: CONFIRMED_MISSING")]
     end
 
-    subgraph S3 ["⚡ Этап 3. Защита времени на кассе (Слон 4)"]
-        direction LR
-        C1[💊 Фармацевт на кассе] -->|Ищет препарат| C2{🚨 Алерт из БД:<br/>«Товар утерян. Не искать!»}
-        C2 -->|Экономия 10 мин| C3[✅ Сразу предлагает аналог]
+    subgraph S3["Этап 3. Защита времени на кассе (Слон 4)"]
+        C1["Фармацевт на кассе"] -->|Ищет препарат| C2{"Алерт БД: Товар утерян. Не искать!"}
+        C2 -->|Экономия 10 мин| C3["Сразу предлагает аналог"]
     end
 
-    subgraph S4 ["📦 Этап 4. Автозаказ (Слон 3)"]
-        direction LR
-        D1[🤖 Ночной робот] -->|sp_daily_minmax_recalc| D2[(🗄️ Вычет CONFIRMED_MISSING<br/>из остатков)]
-        D2 --> D3[🚚 Формирование заказа поставщику]
+    subgraph S4["Этап 4. Автозаказ (Слон 3)"]
+        D1["Ночной робот"] -->|sp_daily_minmax_recalc| D2[("Вычет CONFIRMED_MISSING из остатка")]
+        D2 --> D3["Формирование заказа поставщику"]
     end
 
-    %% Связи между этапами
-    S1 --> S2
-    S2 --> S3
-    S3 --> S4
+    A3 --> B1
+    B4 --> C1
+    C3 --> D1
 
     class A1,D1 robot
     class B1,B2,B3,C1,C3 human
     class A2,A3,B4,D2 db
     class C2 alert
-
-    %%{init: {'sequence': {'mirrorActors': true, 'actorMargin': 40}}}%%
+```
+```mermaid
 sequenceDiagram
-    actor Manager as 👩‍💼 Заведующая
-    actor Pharm as 💊 Фармацевт
-    participant DB as 🗄️ MySQL (apteka_bober)
-    participant Cron as 🤖 Ночной робот
+    actor Manager as Заведующая
+    actor Pharm as Фармацевт
+    participant DB as MySQL (apteka_bober)
+    participant Cron as Ночной робот
 
-    rect rgba(227, 242, 253, 0.5)
+    rect rgb(227, 242, 253)
         Note over DB, Cron: Этап 1. Ночной аудит запасов (Слон 1)
         Cron->>DB: sp_detect_latent_shortages(CURDATE())
         DB->>DB: Поиск партий без продаж > 90/120/180 дн.
         DB-->>Cron: Статус партии: SUSPECT
     end
 
-    rect rgba(255, 243, 224, 0.5)
+    rect rgb(255, 243, 224)
         Note over Manager, DB: Этап 2. Инвентаризация в зале
         Manager->>DB: Просмотр дашборда аномалий
         Manager->>Manager: Поиск на полке (товара нет)
@@ -184,19 +179,21 @@ sequenceDiagram
         DB->>DB: Флаг CONFIRMED_MISSING
     end
 
-    rect rgba(255, 235, 238, 0.5)
+    rect rgb(255, 235, 238)
         Note over Pharm, DB: Этап 3. Защита времени на кассе (Слон 4)
         Pharm->>DB: Поиск препарата для покупателя
-        DB-->>Pharm: 🚨 Алерт: «Товар утерян. Не искать!»
+        DB-->>Pharm: Алерт: «ВНИМАНИЕ: Товар утерян. Не искать!»
         Pharm->>Pharm: Сразу предлагает аналог (-10 мин)
     end
 
-    rect rgba(232, 245, 233, 0.5)
+    rect rgb(232, 245, 233)
         Note over DB, Cron: Этап 4. Автозаказ (Слон 3)
         Cron->>DB: sp_daily_minmax_recalc(CURDATE())
         DB->>DB: Вычет CONFIRMED_MISSING из остатка
         DB-->>Cron: Формирование заказа поставщику
     end
+```
+
 
 
 ### 4.2. ИИ-аудитор зала (Voice-of-Customer) и фильтрация шума
