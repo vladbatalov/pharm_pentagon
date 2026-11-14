@@ -120,34 +120,47 @@ flowchart TD
 3. **Учёт:** при ночной сверке (`sp_verify_and_clean_declines`) система опирается на чистый остаток (`qty_net`), не штрафуя фармацевта за отказ по физически утерянной позиции.
 ### Сквозной процесс: выявление и блокировка «потеряшек» (UML Sequence)
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Manager as Заведующая
-    actor Pharm as Фармацевт (касса)
-    participant Cron as Ночной робот (Job)
-    participant DB as MySQL (apteka_bober)
+```flowchart TD
+    %% Стили для ролей и акцентов
+    classDef robot fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1
+    classDef human fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100
+    classDef db fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#4a148c
+    classDef alert fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c
 
-    Note over Cron, DB: Этап 1. Ночной аудит запасов (Слон 1)
-    Cron->>DB: CALL sp_detect_latent_shortages(CURDATE())
-    DB->>DB: Поиск партий без продаж > 90/120/180 дн.
-    DB-->>Cron: Статус партии обновлен на SUSPECT
+    subgraph S1 ["🌙 Этап 1. Ночной аудит запасов (Слон 1)"]
+        direction LR
+        A1[🤖 Ночной робот] -->|sp_detect_latent_shortages| A2[(🗄️ MySQL: Поиск партий<br/>без продаж > 90/120/180 дн.)]
+        A2 -->|Результат| A3[🏷️ Статус: SUSPECT]
+    end
 
-    Note over Manager, DB: Этап 2. Инвентаризация в зале
-    Manager->>DB: Просмотр дашборда аномалий
-    Manager->>Manager: Поиск упаковки на полке (товара нет)
-    Manager->>DB: CALL sp_confirm_missing_batch(batch_id, emp_id)
-    DB->>DB: Флаг CONFIRMED_MISSING
+    subgraph S2 ["📋 Этап 2. Инвентаризация в зале"]
+        direction LR
+        B1[👩‍💼 Заведующая] -->|Смотрит дашборд| B2[🔍 Ищет упаковку на полке]
+        B2 -->|Товара нет| B3[🖱️ Нажимает «Подтвердить пропажу»<br/>sp_confirm_missing_batch]
+        B3 --> B4[(🗄️ Флаг: CONFIRMED_MISSING)]
+    end
 
-    Note over Pharm, DB: Этап 3. Защита времени на кассе (Слон 4)
-    Pharm->>DB: Поиск препарата для покупателя
-    DB-->>Pharm: Алерт: «ВНИМАНИЕ: Товар утерян. Не искать!»
-    Pharm->>Pharm: Не тратит 10 мин на поиски, сразу предлагает аналог
+    subgraph S3 ["⚡ Этап 3. Защита времени на кассе (Слон 4)"]
+        direction LR
+        C1[💊 Фармацевт на кассе] -->|Ищет препарат| C2{🚨 Алерт из БД:<br/>«Товар утерян. Не искать!»}
+        C2 -->|Экономия 10 мин| C3[✅ Сразу предлагает аналог]
+    end
 
-    Note over Cron, DB: Этап 4. Автозаказ (Слон 3)
-    Cron->>DB: CALL sp_daily_minmax_recalc(CURDATE())
-    DB->>DB: Вычитание CONFIRMED_MISSING из доступного остатка
-    DB-->>Cron: Формирование заказа поставщику
+    subgraph S4 ["📦 Этап 4. Автозаказ (Слон 3)"]
+        direction LR
+        D1[🤖 Ночной робот] -->|sp_daily_minmax_recalc| D2[(🗄️ Вычет CONFIRMED_MISSING<br/>из остатков)]
+        D2 --> D3[🚚 Формирование заказа поставщику]
+    end
+
+    %% Связи между этапами
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+
+    class A1,D1 robot
+    class B1,B2,B3,C1,C3 human
+    class A2,A3,B4,D2 db
+    class C2 alert
 ```
 
 ### 4.2. ИИ-аудитор зала (Voice-of-Customer) и фильтрация шума
