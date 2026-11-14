@@ -120,7 +120,7 @@ flowchart TD
 3. **Учёт:** при ночной сверке (`sp_verify_and_clean_declines`) система опирается на чистый остаток (`qty_net`), не штрафуя фармацевта за отказ по физически утерянной позиции.
 ### Сквозной процесс: выявление и блокировка «потеряшек» (UML Sequence)
 
-```flowchart TD
+flowchart TD
     %% Стили для ролей и акцентов
     classDef robot fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1
     classDef human fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100
@@ -161,7 +161,6 @@ flowchart TD
     class B1,B2,B3,C1,C3 human
     class A2,A3,B4,D2 db
     class C2 alert
-```
 
 ### 4.2. ИИ-аудитор зала (Voice-of-Customer) и фильтрация шума
 Чтобы минимизировать человеческий фактор при фиксации дефектуры, в DWH спроектирован контур приёма событий аудио-/видеоаналитики (`ai_omni_audit_log` и `ai_demand_log`). Витрина `v_ai_executive_navigator` агрегирует инциденты и формирует для заведующей готовые управленческие инструкции:
