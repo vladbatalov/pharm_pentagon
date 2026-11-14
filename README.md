@@ -162,6 +162,43 @@ flowchart TD
     class A2,A3,B4,D2 db
     class C2 alert
 
+    %%{init: {'sequence': {'mirrorActors': true, 'actorMargin': 40}}}%%
+sequenceDiagram
+    actor Manager as 👩‍💼 Заведующая
+    actor Pharm as 💊 Фармацевт
+    participant DB as 🗄️ MySQL (apteka_bober)
+    participant Cron as 🤖 Ночной робот
+
+    rect rgba(227, 242, 253, 0.5)
+        Note over DB, Cron: Этап 1. Ночной аудит запасов (Слон 1)
+        Cron->>DB: sp_detect_latent_shortages(CURDATE())
+        DB->>DB: Поиск партий без продаж > 90/120/180 дн.
+        DB-->>Cron: Статус партии: SUSPECT
+    end
+
+    rect rgba(255, 243, 224, 0.5)
+        Note over Manager, DB: Этап 2. Инвентаризация в зале
+        Manager->>DB: Просмотр дашборда аномалий
+        Manager->>Manager: Поиск на полке (товара нет)
+        Manager->>DB: sp_confirm_missing_batch(batch_id, emp_id)
+        DB->>DB: Флаг CONFIRMED_MISSING
+    end
+
+    rect rgba(255, 235, 238, 0.5)
+        Note over Pharm, DB: Этап 3. Защита времени на кассе (Слон 4)
+        Pharm->>DB: Поиск препарата для покупателя
+        DB-->>Pharm: 🚨 Алерт: «Товар утерян. Не искать!»
+        Pharm->>Pharm: Сразу предлагает аналог (-10 мин)
+    end
+
+    rect rgba(232, 245, 233, 0.5)
+        Note over DB, Cron: Этап 4. Автозаказ (Слон 3)
+        Cron->>DB: sp_daily_minmax_recalc(CURDATE())
+        DB->>DB: Вычет CONFIRMED_MISSING из остатка
+        DB-->>Cron: Формирование заказа поставщику
+    end
+
+
 ### 4.2. ИИ-аудитор зала (Voice-of-Customer) и фильтрация шума
 Чтобы минимизировать человеческий фактор при фиксации дефектуры, в DWH спроектирован контур приёма событий аудио-/видеоаналитики (`ai_omni_audit_log` и `ai_demand_log`). Витрина `v_ai_executive_navigator` агрегирует инциденты и формирует для заведующей готовые управленческие инструкции:
 * `PRICE_OBJECTION` («Дорого») $\rightarrow$ *Пересмотреть наценку / Внести в LOCAL-маркеры (Слон 5).*
