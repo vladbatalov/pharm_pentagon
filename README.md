@@ -2,8 +2,10 @@
   <img src="assets/banner.png" alt="Apteka Bober — Интеллектуальная система управления аптечной сетью" width="100%">
 </p>
 
-> 📄 **[Скачать краткую презентацию проекта (PDF, 8 слайдов)](assets/Apteka_Bober_Presentation.pdf)**
-> 📘 **[Бизнес-концепция проекта (BRD v2.0)](CONCEPT.md)** · **[Скачать в Word (.docx)](Apteka_Bober_Concept_v2.docx)** · 📖 **[Глоссарий терминов и метрик](GLOSSARY.md)**
+> 📄 **[Скачать краткую презентацию проекта (PDF, 8 слайдов)](docs/Apteka_Bober_Presentation.pdf)**
+
+> 📘 **[Бизнес-концепция проекта (BRD v2.0)](CONCEPT.md)** · **[Скачать в Word (.docx)](docs/Apteka_Bober_Concept_v2.docx)** · 📖 **[Глоссарий терминов и метрик](GLOSSARY.md)**
+
 
 
 
