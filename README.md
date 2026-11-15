@@ -240,7 +240,28 @@ sequenceDiagram
 
 ## 6. Схема данных (ER-диаграмма)
 
-> *Рекомендация: поместите скриншот ER-диаграммы из DBeaver в папку `docs/er_diagram.png`.*
+```mermaid
+erDiagram
+    STORES ||--o{ SALES : "пробивает чеки"
+    STORES ||--o{ GOODS_BATCHES : "хранит партии"
+    STORES ||--o{ EMPLOYEES : "штат точки"
+    STORES ||--o{ STORE_ASSORTMENT_LIMITS : "лимиты Min-Max"
+    STORES ||--o{ DM_BUSINESS_VIABILITY : "витрина P&L"
+    STORES ||--o{ LOST_DEMAND_LOG : "фиксирует отказы"
+    STORES ||--o{ AI_OMNI_AUDIT_LOG : "события зала"
+
+    PHARM_GROUPS ||--o{ GOODS : "классифицирует"
+    PHARM_GROUPS ||--o{ CATEGORY_SEASONALITY : "сезонность"
+
+    GOODS ||--o{ GOODS_BATCHES : "партионный учет"
+    GOODS ||--o{ SALES : "позиции чека"
+    GOODS ||--o{ PROMO_RULES : "кросс-продажи"
+    GOODS ||--o{ GOODS_ANALOGS : "аналоги"
+
+    EMPLOYEES ||--o{ SALES : "проводит смену"
+    EMPLOYEES ||--o{ SABOTAGE_LOG : "маркеры антифрода"
+    BONUS_CARDS ||--o{ SALES : "лояльность"
+```
 
 Структура хранилища спроектирована по схеме **«Звезда»**:
 * **Центральные измерения (хабы):** `stores` (аптеки), `goods` (номенклатура), `employees` (персонал), `bonus_cards` (клиенты).
@@ -343,7 +364,7 @@ SELECT * FROM v_ai_executive_navigator;
 
 ## 12. Лицензия и контакты
 
-Учебный портфолио-проект. Открыт для изучения, ревью и обсуждения.  
+* **Учебный портфолио-проект. Открыт для изучения, ревью и обсуждения.  
 ---
 © 2026 Владислав Баталов (`Apteka Bober DWH & Analytics`). Все права защищены. Копирование архитектуры, витрин и материалов без указания автора запрещено.
 
