@@ -3,7 +3,7 @@
 </p>
 
 > 📄 **[Скачать краткую презентацию проекта (PDF, 8 слайдов)](assets/Apteka_Bober_Presentation.pdf)**
-> 📘 **[Бизнес-концепция проекта (BRD v2.0)](CONCEPT.md)** · **[Скачать в Word (.docx)](Apteka_Bober_Concept_v2.docx)**
+> 📘 **[Бизнес-концепция проекта (BRD v2.0)](CONCEPT.md)** · **[Скачать в Word (.docx)](Apteka_Bober_Concept_v2.docx)** · 📖 **[Глоссарий терминов и метрик](GLOSSARY.md)**
 
 
 
