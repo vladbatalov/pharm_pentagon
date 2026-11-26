@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APTEKA BOBER — BRD & System Design v3.0</title>
+  <style>
+    :root {
+      --emerald: #0B5D4B;
+      --emerald-2: #13816b;
+      --mint: #e8f3ef;
+      --line: #cbded8;
+      --ink: #17342e;
+      --muted: #5e716c;
+      --paper: #ffffff;
+      --soft: #f5f9f7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: #dfe9e5;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10px;
+      line-height: 1.35;
+    }
+
+    body {
+      margin: 0;
+      padding: 28px 0;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto 24px;
+      padding: 15mm 16mm 12mm;
+      background: var(--paper);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 30px rgba(11, 93, 75, .12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: var(--emerald);
+    }
+
+    .masthead {
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .logo {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+    }
+
+    .eyebrow {
+      margin: 0 0 3px;
+      color: var(--emerald);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 610px;
+      margin-bottom: 5px;
+      color: var(--emerald);
+      font-size: 20px;
+      line-height: 1.08;
+      letter-spacing: -.025em;
+    }
+
+    .subtitle {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .meta {
+      text-align: right;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.55;
+      white-space: nowrap;
+    }
+
+    .meta strong {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .section {
+      margin-top: 13px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 7px;
+      color: var(--emerald);
+      font-size: 12px;
+      line-height: 1.1;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .section-title span {
+      color: #9bb8af;
+      font-size: 9px;
+      letter-spacing: .08em;
+    }
+
+    .problem {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 12px;
+      padding: 11px 12px;
+      border-left: 4px solid var(--emerald);
+      background: var(--soft);
+    }
+
+    .problem p {
+      margin-bottom: 0;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .goal {
+      padding: 10px 12px;
+      background: var(--emerald);
+      color: #fff;
+    }
+
+    .goal-label {
+      margin-bottom: 4px;
+      color: #a9d6c9;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .goal strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 7px 9px;
+    }
+
+    .pillar {
+      display: grid;
+      grid-template-columns: 27px 1fr;
+      gap: 8px;
+      padding: 8px 9px;
+      min-height: 66px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .pillar:last-child {
+      grid-column: 1 / -1;
+    }
+
+    .num {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--emerald);
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .pillar h3 {
+      margin-bottom: 3px;
+      color: var(--emerald);
+      font-size: 10px;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+
+    .pillar p {
+      margin-bottom: 0;
+      color: var(--ink);
+      font-size: 9.1px;
+      line-height: 1.35;
+    }
+
+    .code {
+      color: var(--emerald);
+      font-family: "Courier New", monospace;
+      font-size: .95em;
+      font-weight: 700;
+    }
+
+    .stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: auto;
+      padding-top: 12px;
+    }
+
+    .stack-item {
+      padding: 5px 8px;
+      color: var(--emerald);
+      background: var(--mint);
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding-top: 7px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 8.5px;
+    }
+
+    .page-number {
+      color: var(--emerald);
+      font-weight: 700;
+    }
+
+    .intro-line {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .pilot-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 9px;
+    }
+
+    .pilot-table th {
+      padding: 7px 6px;
+      color: #fff;
+      background: var(--emerald);
+      text-align: left;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .pilot-table td {
+      padding: 7px 6px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      line-height: 1.35;
+    }
+
+    .pilot-table tr:nth-child(even) td {
+      background: var(--soft);
+    }
+
+    .pilot-table th:nth-child(1),
+    .pilot-table td:nth-child(1) {
+      width: 7%;
+      text-align: center;
+    }
+
+    .pilot-table th:nth-child(2),
+    .pilot-table td:nth-child(2) {
+      width: 24%;
+    }
+
+    .pilot-table th:nth-child(3),
+    .pilot-table td:nth-child(3) {
+      width: 19%;
+    }
+
+    .pilot-table th:nth-child(4),
+    .pilot-table td:nth-child(4) {
+      width: 35%;
+    }
+
+    .pilot-table th:nth-child(5),
+    .pilot-table td:nth-child(5) {
+      width: 15%;
+    }
+
+    .point-name {
+      display: block;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .point-type {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 8px;
+      text-transform: uppercase;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 3px 5px;
+      color: var(--emerald);
+      background: var(--mint);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 11px;
+    }
+
+    .result-card {
+      padding: 11px 12px;
+      border-top: 3px solid var(--emerald);
+      background: var(--soft);
+    }
+
+    .result-card.primary {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: var(--emerald);
+      color: #fff;
+    }
+
+    .result-label {
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .primary .result-label {
+      color: #a9d6c9;
+    }
+
+    .result-value {
+      color: var(--emerald);
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -.03em;
+    }
+
+    .primary .result-value {
+      color: #fff;
+    }
+
+    .result-note {
+      margin-top: 5px;
+      margin-bottom: 0;
+      color: var(--ink);
+      font-size: 9px;
+      line-height: 1.35;
+    }
+
+    .primary .result-note {
+      color: #e3f2ed;
+    }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .metric {
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+    }
+
+    .metric strong {
+      display: block;
+      color: var(--emerald);
+      font-size: 16px;
+      line-height: 1.05;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 8.5px;
+    }
+
+    .closing {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-left: 4px solid var(--emerald-2);
+      background: var(--mint);
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    @media print {
+      html {
+        background: #fff;
+      }
+
+      body {
+        padding: 0;
+      }
+
+      .page {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0;
+        box-shadow: none;
+        page-break-after: always;
+      }
+
+      .page:last-child {
+        page-break-after: auto;
+      }
+    }
+
+    @media (max-width: 800px) {
+      html {
+        font-size: 9px;
+      }
+
+      body {
+        padding: 0;
+      }
+
+      .page {
+        width: 100%;
+        min-height: auto;
+        margin: 0;
+        padding: 28px 18px 20px;
+        box-shadow: none;
+      }
+
+      .masthead {
+        grid-template-columns: 58px 1fr;
+      }
+
+      .logo {
+        width: 58px;
+        height: 58px;
+      }
+
+      .meta {
+        grid-column: 2;
+        text-align: left;
+        white-space: normal;
+      }
+
+      h1 {
+        font-size: 18px;
+      }
+
+      .problem,
+      .result-card.primary {
+        grid-template-columns: 1fr;
+      }
+
+      .architecture {
+        grid-template-columns: 1fr;
+      }
+
+      .pillar:last-child {
+        grid-column: auto;
+      }
+
+      .pilot-table {
+        min-width: 680px;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      .results,
+      .metric-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .result-card.primary {
+        display: block;
+      }
+
+      .result-card.primary > div + div {
+        margin-top: 12px;
+      }
+
+      .page-footer {
+        margin-top: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="page" aria-label="Страница 1. Проблема, цель и архитектура">
+    <header class="masthead">
+      <img class="logo" src="assets/images/attachment-1.png" alt="Логотип Apteka Bober">
+      <div>
+        <p class="eyebrow">APTEKA BOBER</p>
+        <h1>Концепция DWH и управления маржинальностью аптечной сети</h1>
+        <p class="subtitle">BRD &amp; System Design v3.0</p>
+      </div>
+      <div class="meta">
+        <div><strong>Автор:</strong> Владислав Баталов</div>
+        <div>Системный и Бизнес-аналитик</div>
+        <div><strong>Абакан, 2026</strong></div>
+      </div>
+    </header>
+
+    <section class="section">
+      <h2 class="section-title"><span>01</span> Проблема и цель</h2>
+      <div class="problem">
+        <p>Сеть из 5 аптек теряет до 15–20% валовой маржи по 4 приоритетным контурам: заморозка капитала в неликвидах и просрочке, искажение спроса фиктивными отказами, перекосы мотивации на голый оборот и регуляторные риски ЖНВЛП.</p>
+        <div class="goal">
+          <div class="goal-label">Цель проекта</div>
+          <strong>Перенести контроль маржинальности на уровень ядра СУБД.</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title"><span>02</span> Архитектура «7 слонов»</h2>
+      <div class="architecture">
+        <article class="pillar">
+          <div class="num">1</div>
+          <div>
+            <h3>Запасы</h3>
+            <p>Партионный учет; автоуценка <b>−10%</b> за 3 мес. и <b>−50%</b> за 1 мес.; выявление «потеряшек» с исключением из виртуального остатка; блокировка ведомости при списании просрочки.</p>
+          </div>
+        </article>
+
+        <article class="pillar">
+          <div class="num">2</div>
+          <div>
+            <h3>Закупки и прогруз</h3>
+            <p>Учет ретро-бонусов — бэк-маржи; блокировка избыточного офисного прогруза <span class="code">OFFICE_LOAD</span> из KPI точки.</p>
+          </div>
+        </article>
+
+        <article class="pillar">
+          <div class="num">3</div>
+          <div>
+            <h3>Min-Max</h3>
+            <p>Пересчет ADU строго по дням наличия на полке с учетом отказов, ИИ-аудитора зала, сезонности <b>41 группы</b> и неснижаемого буфера ЖНВЛП/приоритетов.</p>
+          </div>
+        </article>
+
+        <article class="pillar">
+          <div class="num">4</div>
+          <div>
+            <h3>Кросс-продажи</h3>
+            <p>До 3 персональных офферов на кассе; пол наценки <b>+5%</b>; аннулирование скидки при удалении базового товара.</p>
+          </div>
+        </article>
+
+        <article class="pillar">
+          <div class="num">5</div>
+          <div>
+            <h3>Цены и печать</h3>
+            <p>Лимит <b>25%</b> на ЖНВЛП; квота <b>100</b> ручных ценников; округление безнала до <b>.99</b>, наличных до <b>.00</b> — <b>+107 839 руб.</b>; печать только для витрины — экономия <b>65%</b> ленты.</p>
+          </div>
+        </article>
+
+        <article class="pillar">
+          <div class="num">6</div>
+          <div>
+            <h3>Антифрод и ИИ-аудит</h3>
+            <p>Блокировка фиктивных отказов при наличии товара на полке; амнистия городской дефектуры; голосовой ИИ-аудитор зала.</p>
+          </div>
+        </article>
+
+        <article class="pillar">
+          <div class="num">7</div>
+          <div>
+            <h3>Мотивация v3.0</h3>
+            <p><b>ЗП = (3 000 руб. × командный коэф [0.90..1.10]) + (15% личной маржи × личный коэф полки [0.80..1.20])</b>. Защита стажеров со стажем &lt;90 дней.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <div class="stack" aria-label="Технологический стек">
+      <span class="stack-item">MySQL 8.0</span>
+      <span class="stack-item">28 таблиц</span>
+      <span class="stack-item">11 Views</span>
+      <span class="stack-item">12 процедур</span>
+      <span class="stack-item">5 триггеров</span>
+      <span class="stack-item">Python ETL</span>
+      <span class="stack-item">Power BI</span>
+    </div>
+
+    <footer class="page-footer">
+      <span>APTEKA BOBER · BRD &amp; System Design v3.0</span>
+      <span class="page-number">01 / 02</span>
+    </footer>
+  </main>
+
+  <main class="page" aria-label="Страница 2. Тестовый полигон и итоги">
+    <header class="masthead">
+      <img class="logo" src="assets/images/attachment-1.png" alt="Логотип Apteka Bober">
+      <div>
+        <p class="eyebrow">APTEKA BOBER</p>
+        <h1>Тестовый полигон и измеримый эффект</h1>
+        <p class="subtitle">Проверка правил управления запасами, спросом и маржинальностью по 5 точкам</p>
+      </div>
+      <div class="meta">
+        <div><strong>Система:</strong> DWH + ETL + Power BI</div>
+        <div><strong>Версия:</strong> 3.0</div>
+        <div><strong>Абакан, 2026</strong></div>
+      </div>
+    </header>
+
+    <section class="section">
+      <h2 class="section-title"><span>03</span> Тестовый полигон</h2>
+      <p class="intro-line">Сопоставление фактического состояния аптек с режимом управленческого действия.</p>
+
+      <div class="table-wrap">
+        <table class="pilot-table">
+          <thead>
+            <tr>
+              <th>№</th>
+              <th>Точка</th>
+              <th>Профиль</th>
+              <th>Ключевой сигнал</th>
+              <th>Режим</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>
+                <span class="point-name">Центральная</span>
+                <span class="point-type">FLAGSHIP</span>
+              </td>
+              <td>Ликвид 93,3%</td>
+              <td>Прогноз плана — 99%</td>
+              <td><span class="status">RENTABLE</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>
+                <span class="point-name">Спальный район</span>
+                <span class="point-type">RESIDENTIAL</span>
+              </td>
+              <td>Излишки и просрочка</td>
+              <td>175 фиктивных отказов</td>
+              <td><span class="status">RISK_ZONE</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>
+                <span class="point-name">Прибольничная</span>
+                <span class="point-type">HOSPITAL</span>
+              </td>
+              <td>Дефицит Rx</td>
+              <td>Упущенная маржа 379 тыс. руб.; заказ ×3</td>
+              <td><span class="status">CLOSURE</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>
+                <span class="point-name">Дискаунтер</span>
+                <span class="point-type">DISCOUNTER</span>
+              </td>
+              <td>Наценка 14,9%</td>
+              <td>Рентабельность за счет ретро-бонусов и вычета прогруза 3,56 млн руб.</td>
+              <td><span class="status">RISK_ZONE</span></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>
+                <span class="point-name">Новая</span>
+                <span class="point-type">NEW</span>
+              </td>
+              <td>Инкубация &lt;30 дней</td>
+              <td>90-дневный карантин просрочки</td>
+              <td><span class="status">INCUBATION</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title"><span>04</span> Итоги</h2>
+
+      <div class="results">
+        <article class="result-card primary">
+          <div>
+            <div class="result-label">Подтвержденный годовой эффект</div>
+            <div class="result-value">+29,29 млн руб./год</div>
+            <p class="result-note">Бэк-маржа, кросс-продажи, автоуценка, экономия на печати ценников и округление.</p>
+          </div>
+          <div>
+            <div class="result-label">Резерв высвобождения капитала</div>
+            <div class="result-value">+11,26 млн руб.</div>
+            <p class="result-note">Резерв оборотного капитала, выявленный за счет контроля запасов и просрочки.</p>
+          </div>
+        </article>
+
+        <article class="result-card">
+          <div class="result-label">Массив данных</div>
+          <div class="result-value">575 538</div>
+          <p class="result-note">чековых строк</p>
+        </article>
+
+        <article class="result-card">
+          <div class="result-label">Охват операций</div>
+          <div class="result-value">235 105</div>
+          <p class="result-note">чеков · 103 SKU · 13 850 карт</p>
+        </article>
+      </div>
+
+      <div class="metric-strip">
+        <div class="metric">
+          <strong>&lt;1 сек.</strong>
+          <span>Выполнение витрин</span>
+        </div>
+        <div class="metric">
+          <strong>5 аптек</strong>
+          <span>Тестовый контур сети</span>
+        </div>
+        <div class="metric">
+          <strong>7 слонов</strong>
+          <span>Ядро управленческих правил</span>
+        </div>
+      </div>
+
+      <div class="closing">
+        Система объединяет партионный учет, контроль спроса, ценообразование, антифрод, мотивацию и BI-витрины в едином контуре управления маржинальностью.
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <span>© 2026 Владислав Баталов</span>
+      <span class="page-number">02 / 02</span>
+    </footer>
+  </main>
+
+</body>
+</html>
