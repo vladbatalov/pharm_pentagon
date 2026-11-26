@@ -4,9 +4,11 @@
 
 > 📄 **[Скачать презентацию проекта (PDF, 12 слайдов)](docs/Apteka_Bober_Presentation.pdf)**
 
-> 📘 **[Бизнес-концепция проекта (BRD & System Design v3.0))](CONCEPT.md)** · **[Скачать в Word (.docx)](docs/Apteka_Bober_Concept_v2.docx)** · 📖 **[Глоссарий терминов и метрик](GLOSSARY.md)**
+> 📘 **[Бизнес-концепция проекта (BRD & System Design v3.0)](CONCEPT.md)** · **[Скачать в Word (.docx)](docs/Apteka_Bober_Concept_v2.docx)** · 📖 **[Глоссарий терминов и метрик](GLOSSARY.md)**
 
-> 🌐 **[Открыть интерактивный сайт-кейс (GitHub Pages)]((https://vladbatalov.github.io/pharm_pentagon/))*
+
+> 🌐 **[Открыть интерактивный сайт-кейс (GitHub Pages)](https://vladbatalov.github.io/pharm_pentagon/)**
+
 
 
 
